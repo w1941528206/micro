@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script type="systemjs-importmap">
+    {
+      "imports": {
+        "react": "https://cdn.bootcdn.net/ajax/libs/react/18.2.0/umd/react.production.min.js",
+        "react-dom": "https://cdn.bootcdn.net/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"
+      }
+    }
+  </script>
+  <div id="root"></div>
+  <script src="https://cdn.bootcdn.net/ajax/libs/systemjs/6.10.1/system.min.js"></script>
+  <script>
+    function SystemJS() {
+
+    }
+
+    let set = new Set();
+
+    const saveGlobalPro = () => {
+      for (let p in window) {
+        set.add(p);
+      }
+    }
+
+    const getGlobalLastPro = () => {
+      let result;
+      for (let p in window) {
+        if (set.has(p)) continue;
+        result = window[p];
+        result.default = result;
+      }
+      return result;
+    }
+
+    saveGlobalPro();
+
+    function load(id) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = id;
+        script.async = true;
+        document.head.appendChild(script);
+        script.addEventListener('load', () => {
+          let _lastRegister = lastRegister;
+          lastRegister = undefined;
+          if (!_lastRegister) {
+            resolve([], () => {});
+          }
+          resolve(_lastRegister);
+        })
+      });
+    }
+
+    SystemJS.prototype.import = function(id) {
+      return new Promise((resolve, reject) => {
+        const lastSepIndex = window.location.href.lastIndexOf('/');
+        const baseURL = location.href.slice(0, lastSepIndex + 1);
+        if (id.startsWith('./')) {
+          resolve(baseURL + id.slice(2));
+        }
+      }).then(id => {
+        let exec;
+        return load(id).then(registerition => {
+          let declared = registerition[1](() => { });
+          exec = declared.execute;
+          return [registerition[0], declared.setters];
+        }).then((info) => {
+          return Promise.all(info[0].map((dep, index) => {
+            var setter = info[1][index];
+            return load(dep).then(r => {
+              let p = getGlobalLastPro();
+              setter(p);
+            });
+          }));
+        }).then(() => {
+          exec();
+        });
+      })
+    }
+
+    let lastRegister;
+
+    SystemJS.prototype.register = function(deps, declare) {
+      lastRegister = [deps, declare];
+    }
+
+    let System = new SystemJS();
+
+    System.import('./index.js').then(() => {})
+  </script>
+</body>
+
+</html>

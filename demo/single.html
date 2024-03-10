@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <a href="#/a">A</a>
+  <a href="#/b">B</a>
+  <script type="module">
+    import { registerApplication, start } from './single.js';
+
+    const appA = {
+      bootstrap: [
+        async () => console.log(1),
+        async () => console.log(2)
+      ],
+      mount: async () => console.log('appA mount'),
+      unmount: async () => console.log('appA unmount'),
+    }
+
+    const appB = {
+      bootstrap: [
+        async () => console.log(3),
+        async () => console.log(4)
+      ],
+      mount: async () => console.log('appB mount'),
+      unmount: async () => console.log('appB unmount'),
+    }
+
+    const customProps = { name: 'roc' };
+
+    registerApplication(
+      'appA',
+      async () => {
+        return appA;
+      },
+      location => location.hash === '#/a',
+      customProps
+    )
+
+    registerApplication(
+      'appB',
+      async () => {
+        return appB;
+      },
+      location => location.hash === '#/b',
+      customProps
+    )
+
+    start();
+
+  </script>
+</body>
+
+</html>
